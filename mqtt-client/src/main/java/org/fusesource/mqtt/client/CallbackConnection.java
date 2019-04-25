@@ -113,8 +113,10 @@ public class CallbackConnection {
     private HeartBeatMonitor heartBeatMonitor;
     private long pingedAt;
     private long reconnects = 0;
+    private boolean isReconnecting = false;
     private final AtomicInteger suspendCount = new AtomicInteger(0);
     private final AtomicInteger suspendChanges = new AtomicInteger(0);
+    private final AtomicInteger suspendCount = new AtomicInteger(0);
 
     private final HashMap<UTF8Buffer, QoS> activeSubs = new HashMap<UTF8Buffer, QoS>();
 
@@ -145,17 +147,24 @@ public class CallbackConnection {
     }
 
     void reconnect() {
-		long reconnectDelay = mqtt.reconnectDelay;
+        if (isReconnecting) {
+            return;
+        }
+        long reconnectDelay = mqtt.reconnectDelay;
         if( reconnectDelay> 0 && mqtt.reconnectBackOffMultiplier > 1.0 ) {
             reconnectDelay = (long) Math.pow(mqtt.reconnectDelay*reconnects, mqtt.reconnectBackOffMultiplier);
         }
         reconnectDelay = Math.min(reconnectDelay, mqtt.reconnectDelayMax);
         reconnects += 1;
-		try {
-			Thread.sleep(reconnectDelay);
-		} catch (InterruptedException e1) {
-			e1.printStackTrace();
-		}
+        try {
+            Thread.sleep(reconnectDelay);
+        } catch (InterruptedException e1) {
+            e1.printStackTrace();
+        }
+        if (isReconnecting) {
+            return;
+        }
+        isReconnecting = true;
         try {
             // And reconnect.
             createTransport(new LoginHandler(new Callback<Void>() {
@@ -190,13 +199,17 @@ public class CallbackConnection {
                         send(request);
                     }
 
+                    reconnects = 0;
+                    isReconnecting = false;
                 }
 
                 public void onFailure(Throwable value) {
+                    isReconnecting = false;
                     handleFatalFailure(value);
                 }
             }, false));
         } catch (Throwable e) {
+            isReconnecting = false;
             handleFatalFailure(e);
         }
     }
