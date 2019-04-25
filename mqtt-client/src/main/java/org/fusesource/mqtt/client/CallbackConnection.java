@@ -145,6 +145,17 @@ public class CallbackConnection {
     }
 
     void reconnect() {
+		long reconnectDelay = mqtt.reconnectDelay;
+        if( reconnectDelay> 0 && mqtt.reconnectBackOffMultiplier > 1.0 ) {
+            reconnectDelay = (long) Math.pow(mqtt.reconnectDelay*reconnects, mqtt.reconnectBackOffMultiplier);
+        }
+        reconnectDelay = Math.min(reconnectDelay, mqtt.reconnectDelayMax);
+        reconnects += 1;
+		try {
+			Thread.sleep(reconnectDelay);
+		} catch (InterruptedException e1) {
+			e1.printStackTrace();
+		}
         try {
             // And reconnect.
             createTransport(new LoginHandler(new Callback<Void>() {
