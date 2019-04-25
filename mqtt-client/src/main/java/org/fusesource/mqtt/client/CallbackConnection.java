@@ -188,7 +188,7 @@ public class CallbackConnection {
                     // Replay any un-acked requests..
                     for (Map.Entry<Short, Request> entry : originalRequests.entrySet()) {
                         MQTTFrame frame = entry.getValue().frame;
-                        frame.dup(true); // set the dup flag as these frames were previously transmitted.
+                        frame.dup(frame.messageType() == PUBLISH.TYPE); // set the dup flag as these frames were previously transmitted.
                         send(entry.getValue());
                     }
 
