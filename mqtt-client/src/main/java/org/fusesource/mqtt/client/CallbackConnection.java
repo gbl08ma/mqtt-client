@@ -116,7 +116,6 @@ public class CallbackConnection {
     private boolean isReconnecting = false;
     private final AtomicInteger suspendCount = new AtomicInteger(0);
     private final AtomicInteger suspendChanges = new AtomicInteger(0);
-    private final AtomicInteger suspendCount = new AtomicInteger(0);
 
     private final HashMap<UTF8Buffer, QoS> activeSubs = new HashMap<UTF8Buffer, QoS>();
 
