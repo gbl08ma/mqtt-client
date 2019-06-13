@@ -468,7 +468,7 @@ public class CallbackConnection {
                 @Override
                 public void run() {
                     // Don't care if the offer is rejected, just means we have data outbound.
-                    if(!disconnected && pingedAt==0) {
+                    if(!disconnected && pingedAt==0 && CallbackConnection.this.transport != null) {
                         MQTTFrame encoded = new PINGREQ().encode();
                         if(CallbackConnection.this.transport.offer(encoded)) {
                             mqtt.tracer.onSend(encoded);
